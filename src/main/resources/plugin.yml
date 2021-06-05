@@ -1,0 +1,9 @@
+name: Man10Chohan
+version: 1.0
+softdepend:
+  - Man10CommonLibs
+main: red.man10.man10chohan.Man10Chohan
+api-version: 1.16
+commands:
+  mc:
+    default: op
