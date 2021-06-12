@@ -11,7 +11,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.security.SecureRandom.getInstance
-import java.util.concurrent.Executor
+import java.util.*
 import java.util.concurrent.Executors
 import kotlin.math.floor
 
@@ -105,7 +105,7 @@ class Man10Chohan : JavaPlugin() {
 
                 val bet = args[1].toDoubleOrNull()
 
-                if (bet==null || bet<=minAmount){
+                if (bet==null || bet<minAmount){
                     sender.sendMessage("${prefix}§6Bet金額に問題があります！")
                     return true
                 }
@@ -159,8 +159,8 @@ class Man10Chohan : JavaPlugin() {
 
     class Game : Listener{
 
-        val playerCho = mutableListOf<Player>()
-        val playerHan = mutableListOf<Player>()
+        val playerCho = mutableListOf<UUID>()
+        val playerHan = mutableListOf<UUID>()
 
         var bet: Double = 0.0
         var canJoin = true
@@ -171,21 +171,21 @@ class Man10Chohan : JavaPlugin() {
 
             if (!canJoin)return
 
-            if (playerCho.contains(p)){
+            if (playerCho.contains(p.uniqueId)){
                 p.sendMessage("${prefix}§c既に丁に賭けています！")
                 return
             }
 
-            if (playerHan.contains(p)){
-                playerHan.remove(p)
-                playerCho.add(p)
+            if (playerHan.contains(p.uniqueId)){
+                playerHan.remove(p.uniqueId)
+                playerCho.add(p.uniqueId)
                 p.sendMessage("${prefix}§c丁に移動しました！")
                 return
             }
 
             if (vaultManager.withdraw(p.uniqueId,bet)){
                 p.sendMessage("${prefix}§c丁に賭けました！")
-                playerCho.add(p)
+                playerCho.add(p.uniqueId)
                 return
             }
 
@@ -197,21 +197,21 @@ class Man10Chohan : JavaPlugin() {
 
             if (!canJoin)return
 
-            if (playerHan.contains(p)){
+            if (playerHan.contains(p.uniqueId)){
                 p.sendMessage("${prefix}§b既に半に賭けています！")
                 return
             }
 
-            if (playerCho.contains(p)){
-                playerCho.remove(p)
-                playerHan.add(p)
+            if (playerCho.contains(p.uniqueId)){
+                playerCho.remove(p.uniqueId)
+                playerHan.add(p.uniqueId)
                 p.sendMessage("${prefix}§b半に移動しました！")
                 return
             }
 
             if (vaultManager.withdraw(p.uniqueId,bet)){
                 p.sendMessage("${prefix}§b半に賭けました！")
-                playerHan.add(p)
+                playerHan.add(p.uniqueId)
                 return
             }
 
@@ -220,14 +220,8 @@ class Man10Chohan : JavaPlugin() {
         }
 
         fun quit(p:Player){
-            if (playerHan.contains(p)){
-                playerHan.remove(p)
-                return
-            }
-            if (playerCho.contains(p)){
-                playerCho.remove(p)
-                return
-            }
+            playerHan.remove(p.uniqueId)
+            playerCho.remove(p.uniqueId)
         }
 
         fun betTimer(){
@@ -238,10 +232,13 @@ class Man10Chohan : JavaPlugin() {
             Bukkit.broadcast(Component.text("${prefix}§6§l${format(bet)}円§a§l丁半が始められました!§f§l[/mc]"))
             Bukkit.broadcast(textCho.append(textHan))
 
+            Thread.sleep(10000)
+
             for (i in 3 downTo 1){
-                Thread.sleep(10000)
 
                 Bukkit.broadcast(Component.text("${prefix}§aBet受付終了まであと${i*10}秒"))
+
+                Thread.sleep(10000)
             }
 
             if (playerCho.size+playerHan.size <= 1 ){
@@ -249,6 +246,13 @@ class Man10Chohan : JavaPlugin() {
                 refund()
                 finish()
                 return
+            }
+            if (playerCho.isEmpty() || playerHan.isEmpty()){
+                Bukkit.broadcast(Component.text("${prefix}§4§l人数が集まらなかったため中止しました"))
+                refund()
+                finish()
+                return
+
             }
 
             canJoin = false
@@ -265,16 +269,16 @@ class Man10Chohan : JavaPlugin() {
 
                 payout = floor(getTotal()/playerCho.size)
 
-                playerCho.forEach { win(it,payout) }
-                playerHan.forEach { lose(it) }
+                for (p in playerCho){ win(Bukkit.getPlayer(p)?:continue,payout) }
+                for (p in playerHan){ lose(Bukkit.getPlayer(p)?:continue) }
 
                 "§c§l丁"
             }else{
 
                 payout = floor(getTotal()/playerHan.size)
 
-                playerCho.forEach { lose(it) }
-                playerHan.forEach { win(it,payout) }
+                for (p in playerHan){ win(Bukkit.getPlayer(p)?:continue,payout) }
+                for (p in playerCho){ lose(Bukkit.getPlayer(p)?:continue) }
 
                 "§b§l半"
             }
@@ -300,18 +304,19 @@ class Man10Chohan : JavaPlugin() {
         private fun refund(){
 
             for (p in playerHan){
-                vaultManager.deposit(p.uniqueId,bet)
+                vaultManager.deposit(p,bet)
             }
 
             for (p in playerCho){
-                vaultManager.deposit(p.uniqueId,bet)
+                vaultManager.deposit(p,bet)
             }
 
         }
 
         private fun sendGameUser(msg:String){
-            playerHan.forEach { it.sendMessage(msg) }
-            playerCho.forEach { it.sendMessage(msg) }
+            for (p in playerHan){ (Bukkit.getPlayer(p)?:continue).sendMessage(msg) }
+            for (p in playerCho){ (Bukkit.getPlayer(p)?:continue).sendMessage(msg) }
+
         }
 
         fun getTotal():Double{
