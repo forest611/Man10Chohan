@@ -26,6 +26,7 @@ class Man10Chohan : JavaPlugin() {
         private val es = Executors.newSingleThreadExecutor()
 
         lateinit var vaultManager: VaultManager
+        lateinit var mysql : MySQLManager
 
 
         fun format(double: Double):String{
@@ -43,6 +44,14 @@ class Man10Chohan : JavaPlugin() {
         fun finish(){
             game = null
         }
+
+        fun saveLog(p:Player,inMoney:Double,outMoney:Double){
+
+            mysql.execute("INSERT INTO chohan_log " +
+                    "(player, uuid, in_money, out_money, date) " +
+                    "VALUES ('${p.name}', '${p.uniqueId}', ${inMoney}, ${outMoney}, DEFAULT)")
+
+        }
     }
 
     private val minAmount = 10000.0
@@ -52,6 +61,7 @@ class Man10Chohan : JavaPlugin() {
         // Plugin startup logic
 
         vaultManager = VaultManager(this)
+        mysql = MySQLManager(this,"ChohanLog")
         server.pluginManager.registerEvents(Game(),this)
     }
 
@@ -269,16 +279,20 @@ class Man10Chohan : JavaPlugin() {
 
                 payout = floor(getTotal()/playerCho.size)
 
-                for (p in playerCho){ win(Bukkit.getPlayer(p)?:continue,payout) }
-                for (p in playerHan){ lose(Bukkit.getPlayer(p)?:continue) }
+                es.execute {
+                    for (p in playerCho){ win(Bukkit.getPlayer(p)?:continue,payout) }
+                    for (p in playerHan){ lose(Bukkit.getPlayer(p)?:continue) }
+                }
 
                 "§c§l丁"
             }else{
 
                 payout = floor(getTotal()/playerHan.size)
 
-                for (p in playerHan){ win(Bukkit.getPlayer(p)?:continue,payout) }
-                for (p in playerCho){ lose(Bukkit.getPlayer(p)?:continue) }
+                es.execute {
+                    for (p in playerHan){ win(Bukkit.getPlayer(p)?:continue,payout) }
+                    for (p in playerCho){ lose(Bukkit.getPlayer(p)?:continue) }
+                }
 
                 "§b§l半"
             }
@@ -295,10 +309,14 @@ class Man10Chohan : JavaPlugin() {
             vaultManager.deposit(p.uniqueId,payout)
             Bukkit.getLogger().info("Chohan Win $payout ${p.name}")
 
+            saveLog(p,bet,payout)
+
         }
 
         private fun lose(p:Player){
             p.sendMessage("${prefix}§c§lあなたは負けました！")
+
+            saveLog(p,bet,0.0)
         }
 
         private fun refund(){
@@ -331,6 +349,7 @@ class Man10Chohan : JavaPlugin() {
         }
 
     }
+
 
 
 }
