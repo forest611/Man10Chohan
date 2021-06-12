@@ -60,6 +60,8 @@ class Man10Chohan : JavaPlugin() {
     override fun onEnable() {
         // Plugin startup logic
 
+        saveDefaultConfig()
+
         vaultManager = VaultManager(this)
         mysql = MySQLManager(this,"ChohanLog")
         server.pluginManager.registerEvents(Game(),this)
