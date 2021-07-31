@@ -201,7 +201,7 @@ class Man10Chohan : JavaPlugin() {
                 return
             }
 
-            p.sendMessage("${prefix}§c所持金が足りません！")
+            p.sendMessage("${prefix}§c電子マネーが足りません！")
 
         }
 
@@ -227,7 +227,7 @@ class Man10Chohan : JavaPlugin() {
                 return
             }
 
-            p.sendMessage("${prefix}§c所持金が足りません！")
+            p.sendMessage("${prefix}§c電子マネーが足りません！")
 
         }
 
