@@ -30,7 +30,7 @@ class Man10Chohan : JavaPlugin() {
 
 
         fun format(double: Double):String{
-            return String.format("%,.1f",double)
+            return String.format("%,.0f",double)
         }
 
         fun start(bet: Double){
@@ -80,7 +80,7 @@ class Man10Chohan : JavaPlugin() {
             if (!sender.hasPermission("chohan.user")){ return true }
 
             sender.sendMessage("${prefix}§e§l------------§0§l[§d§lMa§f§ln§a§l10§c§l丁§b§l半§0§l]§e§l------------")
-            sender.sendMessage("${prefix}§c/mc open <bet>§f:丁半を開<金額は${minAmount}以上>")
+            sender.sendMessage("${prefix}§c/mc open <bet>§f:丁半を開く<金額は${format(minAmount)}以上>")
             sender.sendMessage("${prefix}§c/mc c§f:§c丁(偶数)に賭ける")
             sender.sendMessage("${prefix}§c/mc h§f:§b半(奇数)に賭ける")
             if (game != null){
