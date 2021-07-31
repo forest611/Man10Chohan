@@ -54,7 +54,7 @@ class Man10Chohan : JavaPlugin() {
         }
     }
 
-    private val minAmount = 10000.0
+    private val minAmount = 100.0
     private var isEnable = true
 
     override fun onEnable() {
