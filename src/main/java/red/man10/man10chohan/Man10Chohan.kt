@@ -54,7 +54,7 @@ class Man10Chohan : JavaPlugin() {
         }
     }
 
-    private val minAmount = 100.0
+    private var minAmount = 100.0
     private var isEnable = true
 
     override fun onEnable() {
@@ -62,6 +62,7 @@ class Man10Chohan : JavaPlugin() {
 
         saveDefaultConfig()
 
+        minAmount = config.getDouble("minAmount")
         vaultManager = VaultManager(this)
         mysql = MySQLManager(this,"ChohanLog")
         server.pluginManager.registerEvents(Game(),this)
@@ -81,8 +82,8 @@ class Man10Chohan : JavaPlugin() {
 
             sender.sendMessage("${prefix}§e§l------------§0§l[§d§lMa§f§ln§a§l10§c§l丁§b§l半§0§l]§e§l------------")
             sender.sendMessage("${prefix}§c/mc open <bet>§f:丁半を開く<金額は${format(minAmount)}以上>")
-            sender.sendMessage("${prefix}§c/mc c§f:§c丁(偶数)に賭ける")
-            sender.sendMessage("${prefix}§c/mc h§f:§b半(奇数)に賭ける")
+            sender.sendMessage(Component.text("${prefix}§c§n/mc c§f:§c丁(偶数)に賭ける").clickEvent(ClickEvent.runCommand("/mc c")))
+            sender.sendMessage(Component.text("${prefix}§c§n/mc h§f:§b半(奇数)に賭ける").clickEvent(ClickEvent.runCommand("/mc h")))
             if (game != null){
                 sender.sendMessage("""
                     §e§l----------------------------------
@@ -192,11 +193,14 @@ class Man10Chohan : JavaPlugin() {
                 playerHan.remove(p.uniqueId)
                 playerCho.add(p.uniqueId)
                 p.sendMessage("${prefix}§c丁に移動しました！")
+                sendGameUser("${prefix}§c§l${p.name}さんが丁に移動しました！")
                 return
             }
 
             if (vaultManager.withdraw(p.uniqueId,bet)){
                 p.sendMessage("${prefix}§c丁に賭けました！")
+                sendGameUser("${prefix}§c§l${p.name}さんが丁に参加しました！")
+                sendGameUser("${prefix}§a§l現在の合計賭け金:${format(bet)}")
                 playerCho.add(p.uniqueId)
                 return
             }
@@ -218,11 +222,14 @@ class Man10Chohan : JavaPlugin() {
                 playerCho.remove(p.uniqueId)
                 playerHan.add(p.uniqueId)
                 p.sendMessage("${prefix}§b半に移動しました！")
+                sendGameUser("${prefix}§b§l${p.name}さんが半に移動しました！")
                 return
             }
 
             if (vaultManager.withdraw(p.uniqueId,bet)){
                 p.sendMessage("${prefix}§b半に賭けました！")
+                sendGameUser("${prefix}§b§l${p.name}さんが半に参加しました！")
+                sendGameUser("${prefix}§a§l現在の合計賭け金:${format(bet)}")
                 playerHan.add(p.uniqueId)
                 return
             }
@@ -299,7 +306,7 @@ class Man10Chohan : JavaPlugin() {
                 "§b§l半"
             }
 
-            sendGameUser("${prefix}§f結果: §e§l${result} ${chouhan}の勝利§c(支払額:${format(payout)}円 参加者:${playerCho.size+playerHan.size})")
+            sendGameUser("${prefix}§f結果: §e§l${result} ${chouhan}の勝利")
 
             finish()
 
@@ -308,6 +315,7 @@ class Man10Chohan : JavaPlugin() {
         private fun win(p:Player,payout:Double){
 
             p.sendMessage("${prefix}§b§lあなたは勝ちました！")
+            Bukkit.broadcastMessage("${prefix}§b§l${p.name}さんは§c§l丁§b§l半§b§lで${format(payout)}円ゲットした！")
             vaultManager.deposit(p.uniqueId,payout)
             Bukkit.getLogger().info("Chohan Win $payout ${p.name}")
 
@@ -316,7 +324,7 @@ class Man10Chohan : JavaPlugin() {
         }
 
         private fun lose(p:Player){
-            p.sendMessage("${prefix}§c§lあなたは負けました！")
+            p.sendMessage("${prefix}§cあなたは負けました！")
 
             saveLog(p,bet,0.0)
         }

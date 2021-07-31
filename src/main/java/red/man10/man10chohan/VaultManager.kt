@@ -56,7 +56,7 @@ class VaultManager(private val plugin: JavaPlugin) {
         val resp = economy!!.withdrawPlayer(p.name, money)
         if (resp.transactionSuccess()) {
             if (p.isOnline) {
-                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "支払いました")
+                p.player!!.sendMessage(ChatColor.YELLOW.toString()  + money+ "円" + "支払いました")
             }
             return true
         }
@@ -71,7 +71,7 @@ class VaultManager(private val plugin: JavaPlugin) {
         val resp = economy!!.depositPlayer(p.name, money)
         if (resp.transactionSuccess()) {
             if (p.isOnline) {
-                p.player!!.sendMessage(ChatColor.YELLOW.toString() + "$" + money + "受取りました")
+                p.player!!.sendMessage(ChatColor.YELLOW.toString()  + money + "円" + "受取りました")
             }
             return true
         }
