@@ -83,13 +83,17 @@ class Man10Chohan : JavaPlugin() {
             sender.sendMessage("${prefix}§e§l------------§0§l[§d§lMa§f§ln§a§l10§c§l丁§b§l半§0§l]§e§l------------")
             sender.sendMessage("${prefix}§c/mc open <bet>§f:丁半を開く<金額は${format(minAmount)}以上>")
             sender.sendMessage(Component.text("${prefix}§c§n/mc c§f:§c丁(偶数)に賭ける").clickEvent(ClickEvent.runCommand("/mc c")))
-            sender.sendMessage(Component.text("${prefix}§c§n/mc h§f:§b半(奇数)に賭ける").clickEvent(ClickEvent.runCommand("/mc h")))
+            sender.sendMessage(Component.text("${prefix}§b§n/mc h§f:§b半(奇数)に賭ける").clickEvent(ClickEvent.runCommand("/mc h")))
             if (game != null){
+
+                val message = if (game!!.whichBet(sender)!= null)"§aあなたは${game!!.whichBet(sender)}§aに賭けています" else "§aあなたは参加していません"
+
                 sender.sendMessage("""
                     §e§l----------------------------------
                     §c丁:${game!!.playerCho.size}人
                     §b半:${game!!.playerHan.size}人
-                    §e合計Bet:${format(game!!.getTotal())}円
+                    §e合計ベット:${format(game!!.getTotal())}円
+                    ${message}
                 """.trimIndent())
 
             }
@@ -200,7 +204,7 @@ class Man10Chohan : JavaPlugin() {
             if (vaultManager.withdraw(p.uniqueId,bet)){
                 p.sendMessage("${prefix}§c丁に賭けました！")
                 sendGameUser("${prefix}§c§l${p.name}さんが丁に参加しました！")
-                sendGameUser("${prefix}§a§l現在の合計賭け金:${format(bet)}")
+                sendGameUser("${prefix}§a§l現在の合計賭け金:${format(getTotal())}")
                 playerCho.add(p.uniqueId)
                 return
             }
@@ -229,7 +233,7 @@ class Man10Chohan : JavaPlugin() {
             if (vaultManager.withdraw(p.uniqueId,bet)){
                 p.sendMessage("${prefix}§b半に賭けました！")
                 sendGameUser("${prefix}§b§l${p.name}さんが半に参加しました！")
-                sendGameUser("${prefix}§a§l現在の合計賭け金:${format(bet)}")
+                sendGameUser("${prefix}§a§l現在の合計賭け金:${format(getTotal())}")
                 playerHan.add(p.uniqueId)
                 return
             }
@@ -245,8 +249,8 @@ class Man10Chohan : JavaPlugin() {
 
         fun betTimer(){
 
-            val textCho = Component.text("§c§l[丁(偶数)に賭ける]").clickEvent(ClickEvent.runCommand("/mc c"))
-            val textHan = Component.text("§b§l[半(奇数)に賭ける]").clickEvent(ClickEvent.runCommand("/mc h"))
+            val textCho = Component.text("${prefix}§c§l§n[丁(偶数)に賭ける]").clickEvent(ClickEvent.runCommand("/mc c"))
+            val textHan = Component.text("§b§l§n[半(奇数)に賭ける]").clickEvent(ClickEvent.runCommand("/mc h"))
 
             Bukkit.broadcast(Component.text("${prefix}§6§l${format(bet)}円§a§l丁半が始められました!§f§l[/mc]"))
             Bukkit.broadcast(textCho.append(textHan))
@@ -315,9 +319,9 @@ class Man10Chohan : JavaPlugin() {
         private fun win(p:Player,payout:Double){
 
             p.sendMessage("${prefix}§b§lあなたは勝ちました！")
-            Bukkit.broadcastMessage("${prefix}§b§l${p.name}さんは§c§l丁§b§l半§b§lで${format(payout)}円ゲットした！")
+            Bukkit.broadcastMessage("${prefix}§a§l${p.name}さんは§c§l丁§b§l半§a§lで§e§l${format(payout)}円§a§lゲットした！")
             vaultManager.deposit(p.uniqueId,payout)
-            Bukkit.getLogger().info("Chohan Win $payout ${p.name}")
+//            Bukkit.getLogger().info("Chohan Win $payout ${p.name}")
 
             saveLog(p,bet,payout)
 
@@ -339,6 +343,13 @@ class Man10Chohan : JavaPlugin() {
                 vaultManager.deposit(p,bet)
             }
 
+        }
+
+        fun whichBet(p:Player):String?{
+
+            if (playerHan.contains(p.uniqueId))return "§b§l半"
+            if (playerCho.contains(p.uniqueId))return "§c§l丁"
+            return null
         }
 
         private fun sendGameUser(msg:String){
