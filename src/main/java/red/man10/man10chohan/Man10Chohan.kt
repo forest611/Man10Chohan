@@ -277,6 +277,13 @@ class Man10Chohan : JavaPlugin() {
                 return
 
             }
+            if (playerCho.size+playerHan.size==3){
+                Bukkit.broadcast(Component.text("${prefix}§4§l人数が集まらなかったため中止しました"))
+                refund()
+                finish()
+                return
+
+            }
 
             canJoin = false
 
