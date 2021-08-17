@@ -264,6 +264,13 @@ class Man10Chohan : JavaPlugin() {
                 Thread.sleep(10000)
             }
 
+            Thread.sleep(5000)
+
+            for (i in 5 downTo 1){
+                Bukkit.broadcast(Component.text("${prefix}§aBet受付終了まであと${i}秒"))
+                Thread.sleep(1000)
+            }
+
             if (playerCho.size+playerHan.size <= 1 ){
                 Bukkit.broadcast(Component.text("${prefix}§4§l人数が集まらなかったため中止しました"))
                 refund()
